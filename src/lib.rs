@@ -14,7 +14,6 @@ use wasm_bindgen::{
 };
 
 mod error;
-mod fonts;
 mod options;
 
 use error::Error;
@@ -76,10 +75,10 @@ impl Resvg {
     Ok(buffer.into())
   }
 
-  #[napi]
-  pub fn to_string(&self) -> String {
-    self.tree.to_string(&usvg::XmlOptions::default())
-  }
+  // #[napi]
+  // pub fn to_string(&self) -> String {
+  //   self.tree.to_string(&usvg::XmlOptions::default())
+  // }
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
@@ -113,10 +112,10 @@ impl Resvg {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 impl Resvg {
-  #[wasm_bindgen(js_name = toString)]
-  pub fn to_string(&self) -> String {
-    self.tree.to_string(&usvg::XmlOptions::default())
-  }
+  // #[wasm_bindgen(js_name = toString)]
+  // pub fn to_string(&self) -> String {
+  //   self.tree.to_string(&usvg::XmlOptions::default())
+  // }
 
   #[wasm_bindgen(constructor)]
   pub fn new(svg: IStringOrBuffer, options: Option<String>) -> Result<Resvg, JsValue> {
@@ -163,29 +162,41 @@ impl Resvg {
     );
 
     // Crop the SVG
-    let crop_rect = tiny_skia::IntRect::from_ltrb(
-      self.js_options.crop.left,
-      self.js_options.crop.top,
-      self
-        .js_options
-        .crop
-        .right
-        .unwrap_or(pixmap_size.width() as i32),
-      self
-        .js_options
-        .crop
-        .bottom
-        .unwrap_or(pixmap_size.height() as i32),
-    );
+    // let crop_rect = tiny_skia::IntRect::from_ltrb(
+    //   self.js_options.crop.left,
+    //   self.js_options.crop.top,
+    //   self
+    //     .js_options
+    //     .crop
+    //     .right
+    //     .unwrap_or(pixmap_size.width() as i32),
+    //   self
+    //     .js_options
+    //     .crop
+    //     .bottom
+    //     .unwrap_or(pixmap_size.height() as i32),
+    // );
 
-    if let Some(crop_rect) = crop_rect {
-      pixmap = pixmap.clone_rect(crop_rect).unwrap_or(pixmap);
-    }
+    // if let Some(crop_rect) = crop_rect {
+    //   pixmap = pixmap.clone_rect(crop_rect).unwrap_or(pixmap);
+    // }
 
     // Write the image data to a buffer
     let mut buffer: Vec<u8> = vec![];
     if image.is_some() {
-      buffer = pixmap.encode_png().map_err(Error::from)?;
+      // buffer = pixmap.encode_png().map_err(Error::from)?;
+
+      let mut data = Vec::new();
+      {
+          let mut encoder = png::Encoder::new(&mut data, pixmap_size.width(), pixmap_size.height());
+          encoder.set_color(png::ColorType::Rgba);
+          encoder.set_depth(png::BitDepth::Eight);
+          encoder.set_compression(png::Compression::Fast);
+          let mut writer = encoder.write_header()?;
+          writer.write_image_data(&pixmap.data())?;
+      }
+
+      buffer = data;
     }
 
     Ok(buffer)

@@ -10,19 +10,16 @@ crate-type = ["cdylib"]
 
 [dependencies]
 env_logger = "0.9.0"
-fontdb = "0.9.0"
 log = "0.4"
 resvg = { version = "0.22.0", default-features = false, features = [
     "filter",
-    "dump-svg",
 ] }
-
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 svgtypes = "0.8.0"
 tiny-skia = "0.6.3"
 thiserror = "1.0.30"
-png = "0.17.3"
+png = { git = "https://github.com/image-rs/image-png", rev = "7f56243e95a3bdac8864687b114fbcc1785f22f1" }
 
 [target.'cfg(all(not(all(target_os = "linux", target_arch = "aarch64", target_env = "musl")), not(all(target_os = "windows", target_arch = "aarch64")), not(target_arch = "wasm32")))'.dependencies]
 mimalloc-rust = { version = "0.1" }
@@ -31,7 +28,6 @@ mimalloc-rust = { version = "0.1" }
 wasm-bindgen = "0.2.79"
 js-sys = "0.3.56"
 usvg = { version = "0.22.0", default-features = false, features = [
-    "export",
     "filter",
 ]}
 
@@ -53,3 +49,19 @@ opt-level = 3
 # Setting this to 1 may improve the performance of generated code, but may be slower to compile.
 # https://doc.rust-lang.org/rustc/codegen-options/index.html#codegen-units
 codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+    "-O4",
+    "-ffm",
+    "--dce",
+    "--inlining-optimizing",
+    "-tnh",
+    "-uim",
+    "-iit",
+    "--enable-bulk-memory",
+    "--enable-memory64",
+    "--enable-multivalue",
+    "--enable-mutable-globals",
+    "--enable-threads",
+]
